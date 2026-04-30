@@ -4,6 +4,7 @@ import android.animation.LayoutTransition
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -28,6 +29,10 @@ import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import com.yakuphanuslu.kombin.BuildConfig
+
+// BuildConfig importu otomatik gelmezse manuel ekle kanka
+// import com.yakuphanuslu.kombin.BuildConfig
 
 class MainActivity : AppCompatActivity() {
 
@@ -42,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fabAiGenerate: ExtendedFloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Karanlık modu engelle
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
 
@@ -59,7 +63,6 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        // ASANSÖR ETKİSİ: Layout değişikliklerini canlandır (Butonların kayması için)
         val rootLayout = findViewById<ViewGroup>(R.id.mainRoot)
         rootLayout.layoutTransition?.enableTransitionType(LayoutTransition.CHANGING)
 
@@ -117,7 +120,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             override fun onFailure(call: Call<List<Cloth>>, t: Throwable) {
-                if (!isFinishing) Toast.makeText(this@MainActivity, "Kıyafetler yüklenemedi kanka!", Toast.LENGTH_SHORT).show()
+                if (!isFinishing) Toast.makeText(this@MainActivity, "Veriler çekilemedi kanka!", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -126,11 +129,11 @@ class MainActivity : AppCompatActivity() {
         val bottomSheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
         bottomSheet?.let {
             val behavior = BottomSheetBehavior.from(it)
-            val layoutParams = it.layoutParams
             val displayMetrics = resources.displayMetrics
             val screenWidth = displayMetrics.widthPixels
 
             if (screenWidth > 1600) {
+                val layoutParams = it.layoutParams
                 layoutParams.width = (600 * displayMetrics.density).toInt()
                 it.layoutParams = layoutParams
             }
@@ -139,7 +142,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleSelection(cloth: Cloth) {
-        // llKombinPreview ConstraintLayout olduğu için View olarak bulmak en güvenlisi
         findViewById<View>(R.id.llKombinPreview).visibility = View.VISIBLE
         when (cloth.category_id) {
             1 -> { selectedTop = cloth; updatePreviewUI(R.id.ivPreviewTop, R.id.btnRemoveTop, cloth.image_url) }
@@ -206,7 +208,11 @@ class MainActivity : AppCompatActivity() {
             {"yorum": "Mesajın", "ust_id": ID, "alt_id": ID, "ayakkabi_id": ID}
         """.trimIndent()
 
-        val generativeModel = GenerativeModel(modelName = "gemini-1.5-flash", apiKey = "AIzaSyDRR6hHTNQ3KDsG4RoYJ3ZQYQ5tl-3atyQ")
+        // GÜVENLİ ANAHTAR KULLANIMI
+        val generativeModel = GenerativeModel(
+            modelName = "gemini-3-flash-preview",
+            apiKey = BuildConfig.GEMINI_API_KEY
+        )
 
         lifecycleScope.launch {
             try {
@@ -225,7 +231,8 @@ class MainActivity : AppCompatActivity() {
                     allClothesList.find { it.id == ayakkabiId }?.let { Glide.with(this@MainActivity).load(it.image_url).into(ivShoes) }
                 }
             } catch (e: Exception) {
-                if (!isFinishing) tvAi.text = "AI meşgul kanka, sonra dene!"
+                if (!isFinishing) tvAi.text = "AI meşgul: ${e.localizedMessage}"
+                Log.e("GeminiError", "Detay: ", e)
             }
         }
     }
@@ -252,13 +259,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun callGeminiAPI(prompt: String, textView: TextView, progressBar: ProgressBar) {
         progressBar.visibility = View.VISIBLE
-        val generativeModel = GenerativeModel(modelName = "gemini-1.5-flash", apiKey = "AIzaSyDRR6hHTNQ3KDsG4RoYJ3ZQYQ5tl-3atyQ")
+        // GÜVENLİ ANAHTAR KULLANIMI
+        val generativeModel = GenerativeModel(
+            modelName = "gemini-3-flash-preview",
+            apiKey = BuildConfig.GEMINI_API_KEY
+        )
         lifecycleScope.launch {
             try {
                 val result = generativeModel.generateContent(prompt).text
                 if (!isFinishing) textView.text = result
             } catch (e: Exception) {
-                if (!isFinishing) textView.text = "Hata kanka."
+                Log.e("GeminiError", "Detay:", e)
+                if (!isFinishing) textView.text = "Hata detayı: ${e.localizedMessage}"
             } finally {
                 if (!isFinishing) progressBar.visibility = View.GONE
             }

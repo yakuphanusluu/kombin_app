@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -33,6 +34,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.ByteArrayOutputStream
 
+// BuildConfig otomatik gelmezse bu satırın aktif olduğundan emin ol kanka
+// import com.yakuphanuslu.kombin.BuildConfig
+
 class AddClothingActivity : AppCompatActivity() {
 
     private lateinit var ivClothing: ImageView
@@ -56,6 +60,7 @@ class AddClothingActivity : AppCompatActivity() {
 
     private val takePicturePreview = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
+            // Deprecated uyarısı almamak için güvenli dönüşüm kullanıyoruz
             val imageBitmap = result.data?.extras?.get("data") as? Bitmap
             imageBitmap?.let {
                 capturedBitmap = it
@@ -66,18 +71,16 @@ class AddClothingActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // KARANLIK MODU ENGELLE: Tablet ayarlarından bağımsız hep Light Mode
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_clothing) // XML ismine dikkat kanka
+        setContentView(R.layout.activity_add_clothing)
 
         ivClothing = findViewById(R.id.ivClothing)
         tvAiResult = findViewById(R.id.tvAiResult)
         btnSave = findViewById(R.id.btnSave)
         val btnTakePhoto = findViewById<Button>(R.id.btnTakePhoto)
-        val btnBack = findViewById<ImageButton>(R.id.btnBack) // Geri tuşu eklendi
+        val btnBack = findViewById<ImageButton>(R.id.btnBack)
 
-        // Geri tuşu işlevi
         btnBack.setOnClickListener {
             finish()
         }
@@ -109,13 +112,13 @@ class AddClothingActivity : AppCompatActivity() {
     }
 
     private fun analyzeImageWithGemini(bitmap: Bitmap) {
-        tvAiResult.text = "Gemini analiz ediyor, lütfen bekle..."
+        tvAiResult.text = "Gemini analiz ediyor, lütfen bekle... ✨"
         btnSave.isEnabled = false
 
-        // paid tier özellikleri gereği model ismini güncel tutuyoruz
+        // GÜVENLİ ANAHTAR KULLANIMI: MainActivity'de yaptığımız gibi BuildConfig'den çekiyoruz
         val generativeModel = GenerativeModel(
-            modelName = "gemini-3-flash",
-            apiKey = "AIzaSyDRR6hHTNQ3KDsG4RoYJ3ZQYQ5tl-3atyQ"
+            modelName = "gemini-3-flash-preview",
+            apiKey = BuildConfig.GEMINI_API_KEY
         )
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -131,7 +134,7 @@ class AddClothingActivity : AppCompatActivity() {
                 val resultText = response.text ?: "Analiz edilemedi"
 
                 withContext(Dispatchers.Main) {
-                    if (!isFinishing) { // Rotasyon güvenliği
+                    if (!isFinishing) {
                         tvAiResult.text = "Analiz: $resultText"
 
                         val parts = resultText.split(",")
@@ -148,7 +151,11 @@ class AddClothingActivity : AppCompatActivity() {
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    if (!isFinishing) tvAiResult.text = "Hata: ${e.message}"
+                    if (!isFinishing) {
+                        tvAiResult.text = "Hata: ${e.localizedMessage}"
+                        Log.e("GeminiError", "Kıyafet analizi patladı: ", e)
+                    }
+                    btnSave.isEnabled = true
                 }
             }
         }
@@ -156,7 +163,7 @@ class AddClothingActivity : AppCompatActivity() {
 
     private fun uploadToPHP() {
         val sharedPref = getSharedPreferences("KombinApp", Context.MODE_PRIVATE)
-        val userId = sharedPref.getInt("user_id", -1) // Anahtar "user_id" olarak eşitlendi
+        val userId = sharedPref.getInt("user_id", -1)
 
         if (userId == -1) {
             Toast.makeText(this, "Kullanıcı bilgisi bulunamadı, tekrar giriş yapın.", Toast.LENGTH_SHORT).show()

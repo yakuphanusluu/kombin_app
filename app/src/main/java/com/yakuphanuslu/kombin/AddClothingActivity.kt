@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -48,6 +50,7 @@ class AddClothingActivity : AppCompatActivity() {
     private var aiColor: String = ""
     private var categoryId: Int = 1
 
+    // 1. Kamera İzni
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -58,15 +61,39 @@ class AddClothingActivity : AppCompatActivity() {
         }
     }
 
+    // 2. Kameradan Dönen Sonuç
     private val takePicturePreview = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            // Deprecated uyarısı almamak için güvenli dönüşüm kullanıyoruz
             val imageBitmap = result.data?.extras?.get("data") as? Bitmap
             imageBitmap?.let {
                 capturedBitmap = it
                 ivClothing.setImageBitmap(it)
                 analyzeImageWithGemini(it)
             }
+        }
+    }
+
+    // 3. YENİ ve MODERN: Sistem Fotoğraf Seçici (Photo Picker)
+    private val pickImageGallery = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            try {
+                // Galeriden seçilen fotoğrafı Bitmap'e çeviriyoruz
+                val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val source = ImageDecoder.createSource(contentResolver, uri)
+                    ImageDecoder.decodeBitmap(source)
+                } else {
+                    @Suppress("DEPRECATION")
+                    MediaStore.Images.Media.getBitmap(contentResolver, uri)
+                }
+
+                capturedBitmap = bitmap
+                ivClothing.setImageBitmap(bitmap)
+                analyzeImageWithGemini(bitmap)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Görsel yüklenemedi: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Fotoğraf seçilmedi", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -78,15 +105,24 @@ class AddClothingActivity : AppCompatActivity() {
         ivClothing = findViewById(R.id.ivClothing)
         tvAiResult = findViewById(R.id.tvAiResult)
         btnSave = findViewById(R.id.btnSave)
+
+        // Butonlarımızı tanımlıyoruz
         val btnTakePhoto = findViewById<Button>(R.id.btnTakePhoto)
+        val btnOpenGallery = findViewById<Button>(R.id.btnOpenGallery) // Galeri butonu
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
 
         btnBack.setOnClickListener {
             finish()
         }
 
+        // KAMERA BUTONU: Sadece kamerayı tetikler
         btnTakePhoto.setOnClickListener {
             checkPermissionAndOpenCamera()
+        }
+
+        // GALERİ BUTONU: Sadece galeriyi tetikler (Modern yöntem)
+        btnOpenGallery.setOnClickListener {
+            pickImageGallery.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
         btnSave.setOnClickListener {
@@ -115,7 +151,6 @@ class AddClothingActivity : AppCompatActivity() {
         tvAiResult.text = "Gemini analiz ediyor, lütfen bekle... ✨"
         btnSave.isEnabled = false
 
-        // GÜVENLİ ANAHTAR KULLANIMI: MainActivity'de yaptığımız gibi BuildConfig'den çekiyoruz
         val generativeModel = GenerativeModel(
             modelName = "gemini-3-flash-preview",
             apiKey = BuildConfig.GEMINI_API_KEY
@@ -171,7 +206,7 @@ class AddClothingActivity : AppCompatActivity() {
         }
 
         if (capturedBitmap == null) {
-            Toast.makeText(this, "Lütfen önce bir fotoğraf çekin.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Lütfen önce bir fotoğraf çekin veya seçin.", Toast.LENGTH_SHORT).show()
             return
         }
 

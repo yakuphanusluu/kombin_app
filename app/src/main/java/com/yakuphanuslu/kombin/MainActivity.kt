@@ -31,9 +31,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.yakuphanuslu.kombin.BuildConfig
 
-// BuildConfig importu otomatik gelmezse manuel ekle kanka
-// import com.yakuphanuslu.kombin.BuildConfig
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewPager: ViewPager2
@@ -84,7 +81,7 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<ImageButton>(R.id.btnRemoveTop).setOnClickListener { clearSelection(1) }
         findViewById<ImageButton>(R.id.btnRemoveBottom).setOnClickListener { clearSelection(2) }
-        findViewById<ImageButton>(R.id.btnRemoveShoes).setOnClickListener { clearSelection(3) }
+        findViewById<ImageButton>(R.id.btnRemoveShoes).setOnClickListener { clearSelection(4) }
     }
 
     override fun onResume() {
@@ -110,35 +107,21 @@ class MainActivity : AppCompatActivity() {
                     viewPager.adapter = ViewPagerAdapter(this@MainActivity, allClothesList) { selected ->
                         handleSelection(selected)
                     }
+
                     TabLayoutMediator(tabLayout, viewPager) { tab, position ->
                         tab.text = when(position) {
                             0 -> "Üst Giyim"
                             1 -> "Alt Giyim"
-                            else -> "Ayakkabı"
+                            2 -> "Ayakkabı"
+                            else -> null
                         }
                     }.attach()
                 }
             }
             override fun onFailure(call: Call<List<Cloth>>, t: Throwable) {
-                if (!isFinishing) Toast.makeText(this@MainActivity, "Veriler çekilemedi kanka!", Toast.LENGTH_SHORT).show()
+                if (!isFinishing) Toast.makeText(this@MainActivity, "Veriler çekilemedi!", Toast.LENGTH_SHORT).show()
             }
         })
-    }
-
-    private fun setBottomSheetWidth(dialog: BottomSheetDialog) {
-        val bottomSheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-        bottomSheet?.let {
-            val behavior = BottomSheetBehavior.from(it)
-            val displayMetrics = resources.displayMetrics
-            val screenWidth = displayMetrics.widthPixels
-
-            if (screenWidth > 1600) {
-                val layoutParams = it.layoutParams
-                layoutParams.width = (600 * displayMetrics.density).toInt()
-                it.layoutParams = layoutParams
-            }
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        }
     }
 
     private fun handleSelection(cloth: Cloth) {
@@ -146,7 +129,7 @@ class MainActivity : AppCompatActivity() {
         when (cloth.category_id) {
             1 -> { selectedTop = cloth; updatePreviewUI(R.id.ivPreviewTop, R.id.btnRemoveTop, cloth.image_url) }
             2 -> { selectedBottom = cloth; updatePreviewUI(R.id.ivPreviewBottom, R.id.btnRemoveBottom, cloth.image_url) }
-            3 -> { selectedShoes = cloth; updatePreviewUI(R.id.ivPreviewShoes, R.id.btnRemoveShoes, cloth.image_url) }
+            4 -> { selectedShoes = cloth; updatePreviewUI(R.id.ivPreviewShoes, R.id.btnRemoveShoes, cloth.image_url) }
         }
     }
 
@@ -162,7 +145,7 @@ class MainActivity : AppCompatActivity() {
         when (categoryId) {
             1 -> { selectedTop = null; resetImageView(R.id.ivPreviewTop, R.id.btnRemoveTop) }
             2 -> { selectedBottom = null; resetImageView(R.id.ivPreviewBottom, R.id.btnRemoveBottom) }
-            3 -> { selectedShoes = null; resetImageView(R.id.ivPreviewShoes, R.id.btnRemoveShoes) }
+            4 -> { selectedShoes = null; resetImageView(R.id.ivPreviewShoes, R.id.btnRemoveShoes) }
         }
         if (selectedTop == null && selectedBottom == null && selectedShoes == null) {
             findViewById<View>(R.id.llKombinPreview).visibility = View.GONE
@@ -193,6 +176,11 @@ class MainActivity : AppCompatActivity() {
         val ivBottom = view.findViewById<ImageView>(R.id.ivSuggestBottom)
         val ivShoes = view.findViewById<ImageView>(R.id.ivSuggestShoes)
 
+        // --- BURAYA DİKKAT: Buton Tıklama Dinleyicisi Eklendi ---
+        view.findViewById<Button>(R.id.btnOk).setOnClickListener {
+            dialog.dismiss()
+        }
+
         tvAi.text = "Gardırobun taranıyor... ✨"
         dialog.show()
         setBottomSheetWidth(dialog)
@@ -203,14 +191,13 @@ class MainActivity : AppCompatActivity() {
 
         val systemPrompt = """
             Sen profesyonel bir stil danışmanısın. Gardırop: $wardrobeInventory
-            Lütfen birbirine en uyumlu 1 Üst (Kat 1), 1 Alt (Kat 2) ve 1 Ayakkabı (Kat 3) seç.
+            Lütfen birbirine en uyumlu 1 Üst (Kat 1), 1 Alt (Kat 2) ve 1 Ayakkabı (Kat 4) seç.
             Cevabını SADECE şu JSON formatında ver:
             {"yorum": "Mesajın", "ust_id": ID, "alt_id": ID, "ayakkabi_id": ID}
         """.trimIndent()
 
-        // GÜVENLİ ANAHTAR KULLANIMI
         val generativeModel = GenerativeModel(
-            modelName = "gemini-3-flash-preview",
+            modelName = "gemini-2.5-flash",
             apiKey = BuildConfig.GEMINI_API_KEY
         )
 
@@ -246,9 +233,9 @@ class MainActivity : AppCompatActivity() {
         val tvAi = view.findViewById<TextView>(R.id.tvAiResponse)
         val pb = view.findViewById<ProgressBar>(R.id.pbLoading)
 
-        selectedTop?.let { Glide.with(this).load(it.image_url).into(view.findViewById(R.id.ivReviewTop)) }
-        selectedBottom?.let { Glide.with(this).load(it.image_url).into(view.findViewById(R.id.ivReviewBottom)) }
-        selectedShoes?.let { Glide.with(this).load(it.image_url).into(view.findViewById(R.id.ivReviewShoes)) }
+        selectedTop?.let { Glide.with(this).load(it.image_url).into(view.findViewById<ImageView>(R.id.ivReviewTop)) }
+        selectedBottom?.let { Glide.with(this).load(it.image_url).into(view.findViewById<ImageView>(R.id.ivReviewBottom)) }
+        selectedShoes?.let { Glide.with(this).load(it.image_url).into(view.findViewById<ImageView>(R.id.ivReviewShoes)) }
 
         dialog.show()
         setBottomSheetWidth(dialog)
@@ -259,9 +246,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun callGeminiAPI(prompt: String, textView: TextView, progressBar: ProgressBar) {
         progressBar.visibility = View.VISIBLE
-        // GÜVENLİ ANAHTAR KULLANIMI
         val generativeModel = GenerativeModel(
-            modelName = "gemini-3-flash-preview",
+            modelName = "gemini-2.5-flash",
             apiKey = BuildConfig.GEMINI_API_KEY
         )
         lifecycleScope.launch {
@@ -274,6 +260,22 @@ class MainActivity : AppCompatActivity() {
             } finally {
                 if (!isFinishing) progressBar.visibility = View.GONE
             }
+        }
+    }
+
+    private fun setBottomSheetWidth(dialog: BottomSheetDialog) {
+        val bottomSheet = dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+        bottomSheet?.let {
+            val behavior = BottomSheetBehavior.from(it)
+            val displayMetrics = resources.displayMetrics
+            val screenWidth = displayMetrics.widthPixels
+
+            if (screenWidth > 1600) {
+                val layoutParams = it.layoutParams
+                layoutParams.width = (600 * displayMetrics.density).toInt()
+                it.layoutParams = layoutParams
+            }
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
         }
     }
 

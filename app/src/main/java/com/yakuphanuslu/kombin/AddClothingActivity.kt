@@ -36,9 +36,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.ByteArrayOutputStream
 
-// BuildConfig otomatik gelmezse bu satırın aktif olduğundan emin ol kanka
-// import com.yakuphanuslu.kombin.BuildConfig
-
 class AddClothingActivity : AppCompatActivity() {
 
     private lateinit var ivClothing: ImageView
@@ -48,20 +45,17 @@ class AddClothingActivity : AppCompatActivity() {
     private var capturedBitmap: Bitmap? = null
     private var aiDescription: String = ""
     private var aiColor: String = ""
+
+    // BAŞLANGIÇTA 1 (Üst Giyim) AMA ANALİZ SONRASI DEĞİŞECEK
     private var categoryId: Int = 1
 
-    // 1. Kamera İzni
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        if (isGranted) {
-            openCamera()
-        } else {
-            Toast.makeText(this, "Kamera izni verilmediği için fotoğraf çekilemez.", Toast.LENGTH_SHORT).show()
-        }
+        if (isGranted) openCamera()
+        else Toast.makeText(this, "Kamera izni verilmedi.", Toast.LENGTH_SHORT).show()
     }
 
-    // 2. Kameradan Dönen Sonuç
     private val takePicturePreview = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val imageBitmap = result.data?.extras?.get("data") as? Bitmap
@@ -73,11 +67,9 @@ class AddClothingActivity : AppCompatActivity() {
         }
     }
 
-    // 3. YENİ ve MODERN: Sistem Fotoğraf Seçici (Photo Picker)
     private val pickImageGallery = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             try {
-                // Galeriden seçilen fotoğrafı Bitmap'e çeviriyoruz
                 val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     val source = ImageDecoder.createSource(contentResolver, uri)
                     ImageDecoder.decodeBitmap(source)
@@ -85,15 +77,12 @@ class AddClothingActivity : AppCompatActivity() {
                     @Suppress("DEPRECATION")
                     MediaStore.Images.Media.getBitmap(contentResolver, uri)
                 }
-
                 capturedBitmap = bitmap
                 ivClothing.setImageBitmap(bitmap)
                 analyzeImageWithGemini(bitmap)
             } catch (e: Exception) {
-                Toast.makeText(this, "Görsel yüklenemedi: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Hata: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-        } else {
-            Toast.makeText(this, "Fotoğraf seçilmedi", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -105,40 +94,23 @@ class AddClothingActivity : AppCompatActivity() {
         ivClothing = findViewById(R.id.ivClothing)
         tvAiResult = findViewById(R.id.tvAiResult)
         btnSave = findViewById(R.id.btnSave)
-
-        // Butonlarımızı tanımlıyoruz
         val btnTakePhoto = findViewById<Button>(R.id.btnTakePhoto)
-        val btnOpenGallery = findViewById<Button>(R.id.btnOpenGallery) // Galeri butonu
+        val btnOpenGallery = findViewById<Button>(R.id.btnOpenGallery)
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
 
-        btnBack.setOnClickListener {
-            finish()
-        }
-
-        // KAMERA BUTONU: Sadece kamerayı tetikler
-        btnTakePhoto.setOnClickListener {
-            checkPermissionAndOpenCamera()
-        }
-
-        // GALERİ BUTONU: Sadece galeriyi tetikler (Modern yöntem)
+        btnBack.setOnClickListener { finish() }
+        btnTakePhoto.setOnClickListener { checkPermissionAndOpenCamera() }
         btnOpenGallery.setOnClickListener {
             pickImageGallery.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
-
-        btnSave.setOnClickListener {
-            uploadToPHP()
-        }
+        btnSave.setOnClickListener { uploadToPHP() }
     }
 
     private fun checkPermissionAndOpenCamera() {
-        when {
-            ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                    == PackageManager.PERMISSION_GRANTED -> {
-                openCamera()
-            }
-            else -> {
-                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-            }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            openCamera()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
@@ -148,17 +120,17 @@ class AddClothingActivity : AppCompatActivity() {
     }
 
     private fun analyzeImageWithGemini(bitmap: Bitmap) {
-        tvAiResult.text = "Gemini analiz ediyor, lütfen bekle... ✨"
+        tvAiResult.text = "Gemini analiz ediyor... ✨"
         btnSave.isEnabled = false
 
         val generativeModel = GenerativeModel(
-            modelName = "gemini-3-flash-preview",
+            modelName = "gemini-2.5-flash",
             apiKey = BuildConfig.GEMINI_API_KEY
         )
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val prompt = "Bu kıyafeti analiz et. Bana sadece şu iki bilgiyi virgülle ayırarak ver: [Renk], [Kıyafet Türü]. Örneğin: Kırmızı, Tişört. Başka hiçbir açıklama yazma."
+                val prompt = "Bu kıyafeti analiz et. Bana sadece şu iki bilgiyi virgülle ayırarak ver: [Renk], [Kıyafet Türü]. Örneğin: Kırmızı, Tişört veya Mavi, Pantolon. Başka hiçbir açıklama yazma."
 
                 val inputContent = content {
                     image(bitmap)
@@ -180,16 +152,21 @@ class AddClothingActivity : AppCompatActivity() {
                             aiDescription = resultText
                         }
 
+                        // --- BURASI KRİTİK: Kategori ID'sini burada güncelliyoruz ---
+                        val descLower = aiDescription.lowercase()
+                        categoryId = when {
+                            descLower.contains("ayakkabı") || descLower.contains("bot") || descLower.contains("sneaker") -> 4
+                            descLower.contains("pantolon") || descLower.contains("şort") || descLower.contains("etek") -> 2
+                            else -> 1 // Varsayılan olarak Üst Giyim
+                        }
+                        // ---------------------------------------------------------
+
                         btnSave.isEnabled = true
                     }
                 }
-
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    if (!isFinishing) {
-                        tvAiResult.text = "Hata: ${e.localizedMessage}"
-                        Log.e("GeminiError", "Kıyafet analizi patladı: ", e)
-                    }
+                    if (!isFinishing) tvAiResult.text = "Hata: ${e.localizedMessage}"
                     btnSave.isEnabled = true
                 }
             }
@@ -200,17 +177,9 @@ class AddClothingActivity : AppCompatActivity() {
         val sharedPref = getSharedPreferences("KombinApp", Context.MODE_PRIVATE)
         val userId = sharedPref.getInt("user_id", -1)
 
-        if (userId == -1) {
-            Toast.makeText(this, "Kullanıcı bilgisi bulunamadı, tekrar giriş yapın.", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (userId == -1 || capturedBitmap == null) return
 
-        if (capturedBitmap == null) {
-            Toast.makeText(this, "Lütfen önce bir fotoğraf çekin veya seçin.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        tvAiResult.text = "Sunucuya yükleniyor..."
+        tvAiResult.text = "Sunucuya kaydediliyor..."
         btnSave.isEnabled = false
 
         val retrofit = Retrofit.Builder()
@@ -227,30 +196,21 @@ class AddClothingActivity : AppCompatActivity() {
 
         val stream = ByteArrayOutputStream()
         capturedBitmap!!.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-        val byteArray = stream.toByteArray()
-
-        val mediaType = "image/jpg".toMediaTypeOrNull()
-        val requestFile = byteArray.toRequestBody(mediaType)
-        val imagePart = MultipartBody.Part.createFormData("image", "photo_${System.currentTimeMillis()}.jpg", requestFile)
+        val imagePart = MultipartBody.Part.createFormData("image", "photo.jpg", stream.toByteArray().toRequestBody("image/jpg".toMediaTypeOrNull()))
 
         apiService.uploadClothing(uId, cId, color, desc, imagePart).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                if (!isFinishing) {
-                    if (response.isSuccessful && response.body()?.status == "success") {
-                        Toast.makeText(this@AddClothingActivity, "Kıyafet başarıyla kaydedildi!", Toast.LENGTH_LONG).show()
-                        finish()
-                    } else {
-                        tvAiResult.text = "Sunucu hatası: ${response.body()?.message}"
-                        btnSave.isEnabled = true
-                    }
-                }
-            }
-
-            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                if (!isFinishing) {
-                    tvAiResult.text = "Bağlantı hatası: ${t.message}"
+                if (response.isSuccessful && response.body()?.status == "success") {
+                    Toast.makeText(this@AddClothingActivity, "Başarıyla kaydedildi!", Toast.LENGTH_SHORT).show()
+                    finish()
+                } else {
+                    tvAiResult.text = "Hata: ${response.body()?.message}"
                     btnSave.isEnabled = true
                 }
+            }
+            override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                tvAiResult.text = "Bağlantı hatası: ${t.message}"
+                btnSave.isEnabled = true
             }
         })
     }

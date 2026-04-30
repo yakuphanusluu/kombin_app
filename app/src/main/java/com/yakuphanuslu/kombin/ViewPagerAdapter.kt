@@ -13,7 +13,15 @@ class ViewPagerAdapter(
     override fun getItemCount(): Int = 3
 
     override fun createFragment(position: Int): Fragment {
-        // Tıklama fonksiyonunu fragment'a paslıyoruz
-        return CategoryFragment(position + 1, clothes, onItemClick)
+        // Sekme sırasını veritabanındaki kategori ID'leri ile eşliyoruz
+        val categoryId = when(position) {
+            0 -> 1 // Üst Giyim
+            1 -> 2 // Alt Giyim
+            2 -> 4 // Ayakkabı (Veritabanında ID'si 4 olduğu için direkt 4'e bağlıyoruz)
+            else -> 1
+        }
+
+        // Tıklama fonksiyonunu ve doğru kategori ID'sini fragment'a paslıyoruz
+        return CategoryFragment(categoryId, clothes, onItemClick)
     }
 }

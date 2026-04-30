@@ -70,5 +70,5 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     // Gemini AI SDK
-    implementation("com.google.ai.client.generativeai:generativeai:0.4.0")
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 }

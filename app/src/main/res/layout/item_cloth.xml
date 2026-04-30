@@ -10,7 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:padding="8dp"
+        android:gravity="center_vertical"> <!-- Elemanları dikeyde ortalamak için eklendi -->
 
         <ImageView
             android:id="@+id/ivClothThumbnail"
@@ -19,12 +20,13 @@
             android:scaleType="centerCrop"
             android:background="#F0F0F0" />
 
+        <!-- Ortadaki yazı kısmı. weight="1" vererek çarpı butonunu en sağa itiyoruz -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:layout_marginStart="12dp"
-            android:orientation="vertical"
-            android:layout_gravity="center_vertical">
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvClothDesc"
@@ -41,5 +43,17 @@
                 android:text="Renk"
                 android:textColor="#757575" />
         </LinearLayout>
+
+        <!-- YENİ EKLENEN SİLME ÇARPI BUTONU -->
+        <ImageButton
+            android:id="@+id/btnDeleteClothing"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="#D32F2F"
+            android:padding="8dp" />
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

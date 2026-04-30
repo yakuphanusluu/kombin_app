@@ -19,7 +19,8 @@ class CategoryFragment(
         val filteredList = allClothes.filter { it.category_id == categoryId }
 
         rv.layoutManager = GridLayoutManager(context, 2)
-        // Adaptöre tıklama olayını veriyoruz
-        rv.adapter = ClothAdapter(filteredList, onItemClick)
+
+        // BURASI GÜNCELLENDİ: filteredList'i MutableList'e çevirerek gönderiyoruz
+        rv.adapter = ClothAdapter(filteredList.toMutableList(), onItemClick)
     }
 }

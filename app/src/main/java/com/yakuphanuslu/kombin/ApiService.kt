@@ -95,4 +95,12 @@ interface ApiService {
 
     @GET("get_clothes.php")
     fun getClothes(@Query("user_id") userId: Int): Call<List<Cloth>>
+
+    // --- Kıyafet Silme İşlemi (delete_clothing.php) ---
+    @FormUrlEncoded
+    @POST("delete_clothing.php")
+    fun deleteClothing(
+        @Field("user_id") userId: Int,
+        @Field("clothing_id") clothingId: Int
+    ): Call<LoginResponse>
 }

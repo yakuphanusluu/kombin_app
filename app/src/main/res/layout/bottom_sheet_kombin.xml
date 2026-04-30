@@ -1,0 +1,35 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/rounded_bottom_sheet">
+
+    <TextView
+        android:id="@+id/tvGeminiComment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Stil Danışmanının Yorumu..."
+        android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:orientation="horizontal"
+        android:weightSum="3">
+
+        <ImageView android:id="@+id/ivSuggestTop" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="4dp" android:scaleType="centerCrop" />
+        <ImageView android:id="@+id/ivSuggestBottom" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="4dp" android:scaleType="centerCrop" />
+        <ImageView android:id="@+id/ivSuggestShoes" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="4dp" android:scaleType="centerCrop" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnOk"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Harika Görünüyor!"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@android:color/holo_purple" />
+</LinearLayout>

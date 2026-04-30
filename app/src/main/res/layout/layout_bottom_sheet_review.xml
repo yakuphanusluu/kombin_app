@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="12dp"
+        app:cardBackgroundColor="@color/white">
+
+        <LinearLayout
+            android:layout_width="600dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center_horizontal">
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:background="#DADADA"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kombin Analizi"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:layout_marginBottom="20dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:orientation="horizontal"
+                android:weightSum="3"
+                android:gravity="center">
+
+                <ImageView android:id="@+id/ivReviewTop" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:scaleType="centerCrop" android:layout_margin="6dp" android:background="#F5F5F5"/>
+                <ImageView android:id="@+id/ivReviewBottom" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:scaleType="centerCrop" android:layout_margin="6dp" android:background="#F5F5F5"/>
+                <ImageView android:id="@+id/ivReviewShoes" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:scaleType="centerCrop" android:layout_margin="6dp" android:background="#F5F5F5"/>
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/pbLoading"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:layout_marginTop="20dp"
+                android:indeterminateTint="#6200EE"/>
+
+            <TextView
+                android:id="@+id/tvAiResponse"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Gemini yorumu bekleniyor..."
+                android:textColor="#444444"
+                android:textSize="17sp"
+                android:lineSpacingExtra="6dp"
+                android:gravity="center_horizontal"/>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</FrameLayout>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mainRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FBF9FC"
+    android:animateLayoutChanges="true">
+
+    <!-- Header Bölümü -->
+    <RelativeLayout
+        android:id="@+id/rlHeader"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="#6200EE"
+        android:padding="16dp"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/tvWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="Dijital Gardırop"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/ivSettings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_settings_gear"
+            app:tint="#FFFFFF"
+            android:contentDescription="Ayarlar" />
+    </RelativeLayout>
+
+    <!-- Tablar -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rlHeader"
+        android:background="#FFFFFF"
+        app:tabIndicatorColor="#6200EE"
+        app:tabSelectedTextColor="#6200EE"
+        app:tabTextColor="#757575"
+        app:tabIndicatorHeight="3dp" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/llKombinPreview"
+        android:layout_below="@id/tabLayout"
+        android:layout_marginTop="8dp" />
+
+    <!-- Kombin Önizleme Barı -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/llKombinPreview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone"
+        android:padding="12dp">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="10dp"
+            app:cardBackgroundColor="#FFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_max="600dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="110dp"
+                    android:orientation="horizontal"
+                    android:weightSum="3"
+                    android:gravity="center">
+
+                    <!-- ÜST GİYİM -->
+                    <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="6dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            app:cardCornerRadius="14dp"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#F0E6F5">
+                            <ImageView android:id="@+id/ivPreviewTop" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:padding="4dp" android:alpha="1.0" android:src="@android:drawable/ic_menu_gallery" android:background="#FBF9FC" />
+                        </com.google.android.material.card.MaterialCardView>
+                        <ImageButton android:id="@+id/btnRemoveTop" android:layout_width="26dp" android:layout_height="26dp" android:layout_gravity="top|end" android:layout_margin="2dp" android:background="#FF5252" android:src="@android:drawable/ic_menu_close_clear_cancel" app:tint="#FFFFFF" android:visibility="gone" android:elevation="4dp" />
+                    </FrameLayout>
+
+                    <!-- ALT GİYİM -->
+                    <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="6dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            app:cardCornerRadius="14dp"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#F0E6F5">
+                            <ImageView android:id="@+id/ivPreviewBottom" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:padding="4dp" android:alpha="1.0" android:src="@android:drawable/ic_menu_gallery" android:background="#FBF9FC" />
+                        </com.google.android.material.card.MaterialCardView>
+                        <ImageButton android:id="@+id/btnRemoveBottom" android:layout_width="26dp" android:layout_height="26dp" android:layout_gravity="top|end" android:layout_margin="2dp" android:background="#FF5252" android:src="@android:drawable/ic_menu_close_clear_cancel" app:tint="#FFFFFF" android:visibility="gone" android:elevation="4dp" />
+                    </FrameLayout>
+
+                    <!-- AYAKKABI -->
+                    <FrameLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_margin="6dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            app:cardCornerRadius="14dp"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="#F0E6F5">
+                            <ImageView android:id="@+id/ivPreviewShoes" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:padding="4dp" android:alpha="1.0" android:src="@android:drawable/ic_menu_gallery" android:background="#FBF9FC" />
+                        </com.google.android.material.card.MaterialCardView>
+                        <ImageButton android:id="@+id/btnRemoveShoes" android:layout_width="26dp" android:layout_height="26dp" android:layout_gravity="top|end" android:layout_margin="2dp" android:background="#FF5252" android:src="@android:drawable/ic_menu_close_clear_cancel" app:tint="#FFFFFF" android:visibility="gone" android:elevation="4dp" />
+                    </FrameLayout>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnAnalyze"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:backgroundTint="#6200EE"
+                    android:text="Kombini Analiz Et ✨"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:padding="12dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Buton Grubu -->
+    <LinearLayout
+        android:id="@+id/llFabContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@id/llKombinPreview"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="end">
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/fabAiGenerate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="Kombin Yap ✨"
+            android:textColor="#FFFFFF"
+            app:backgroundTint="#6200EE"
+            app:icon="@android:drawable/ic_menu_today"
+            app:iconTint="#FFFFFF" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_input_add"
+            app:backgroundTint="#6200EE"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
+
+</RelativeLayout>
